@@ -1,0 +1,5 @@
+{
+  "name": "FitFlow - 智能健身助手",
+  "description": "基于囚徒健身理念的智能运动追踪器，支持AI计划生成与自定义模板。",
+  "requestFramePermissions": []
+}
