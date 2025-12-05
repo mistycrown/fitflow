@@ -1,12 +1,19 @@
 
 export enum ExerciseCategory {
-  PUSHUPS = '俯卧撑',
-  SQUATS = '深蹲',
-  PULLUPS = '引体向上',
-  LEG_RAISES = '举腿',
-  BRIDGES = '桥',
-  HANDSTAND_PUSHUPS = '倒立撑',
+  CHEST = '胸部',
+  BACK = '背部',
+  LEGS = '腿部',
+  CORE = '核心',
+  ARMS = '手臂',
+  SHOULDERS = '肩部',
+  CARDIO = '有氧',
+  FULL_BODY = '全身',
   CUSTOM = '自定义'
+}
+
+export enum ExerciseType {
+  REPS = 'REPS',
+  DURATION = 'DURATION'
 }
 
 export interface Exercise {
@@ -15,6 +22,7 @@ export interface Exercise {
   category: ExerciseCategory;
   muscleGroup?: string;
   isFavorite?: boolean;
+  type?: ExerciseType;
 }
 
 export interface WorkoutSet {
@@ -48,4 +56,13 @@ export interface WorkoutTemplate {
 
 export type ExercisePreferences = Record<string, { defaultSets: number; defaultReps: number }>;
 
-export type ViewState = 'TODAY' | 'PLAN' | 'LIBRARY' | 'HISTORY';
+export type ViewState = 'TODAY' | 'PLAN' | 'LIBRARY' | 'HISTORY' | 'SETTINGS';
+
+export type AiProvider = 'GEMINI' | 'DEEPSEEK' | 'SILICONFLOW' | 'CUSTOM';
+
+export interface AiSettings {
+  provider: AiProvider;
+  apiKey: string;
+  baseUrl?: string;
+  modelName?: string;
+}

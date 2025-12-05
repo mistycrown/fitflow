@@ -1,13 +1,16 @@
 
 import React, { useState } from 'react';
-import { Exercise, ExerciseCategory, WorkoutTemplate } from '../types';
-import { Search, Plus, Dumbbell, X, Layers, Trash2, Heart, Save, Edit2, ArrowDownToLine, ArrowUpFromLine, MoveVertical, Zap, Star, Activity } from 'lucide-react';
+import { Exercise, ExerciseCategory, WorkoutTemplate, ExerciseType } from '../types';
+import { Search, Plus, Dumbbell, X, Layers, Trash2, Heart, Save, Edit2, ArrowDownToLine, ArrowUpFromLine, MoveVertical, Zap, Star, Activity, Sparkles, ChevronDown } from 'lucide-react';
 import { Button } from './Button';
+import { Select } from './Select';
+import { generateSmartWorkout } from '../services/geminiService';
 
 interface LibraryViewProps {
   exercises: Exercise[];
   templates: WorkoutTemplate[];
   onAddExercise: (exercise: Exercise) => void;
+  onUpdateExercise: (exercise: Exercise) => void;
   onDeleteExercise: (id: string) => void;
   onToggleFavorite: (id: string) => void;
   onAddTemplate: (template: WorkoutTemplate) => void;
@@ -19,18 +22,22 @@ type TabState = 'EXERCISES' | 'TEMPLATES' | 'FAVORITES';
 
 const getCategoryIcon = (category: ExerciseCategory) => {
   switch (category) {
-    case ExerciseCategory.PUSHUPS:
+    case ExerciseCategory.CHEST:
       return <Dumbbell size={20} />;
-    case ExerciseCategory.SQUATS:
-      return <ArrowDownToLine size={20} />;
-    case ExerciseCategory.PULLUPS:
+    case ExerciseCategory.BACK:
       return <ArrowUpFromLine size={20} />;
-    case ExerciseCategory.LEG_RAISES:
+    case ExerciseCategory.LEGS:
+      return <ArrowDownToLine size={20} />;
+    case ExerciseCategory.CORE:
       return <MoveVertical size={20} />;
-    case ExerciseCategory.BRIDGES:
-      return <Activity size={20} />;
-    case ExerciseCategory.HANDSTAND_PUSHUPS:
+    case ExerciseCategory.ARMS:
       return <Zap size={20} />;
+    case ExerciseCategory.SHOULDERS:
+      return <Activity size={20} />;
+    case ExerciseCategory.CARDIO:
+      return <Sparkles size={20} />;
+    case ExerciseCategory.FULL_BODY:
+      return <Layers size={20} />;
     case ExerciseCategory.CUSTOM:
     default:
       return <Star size={20} />;
@@ -38,7 +45,7 @@ const getCategoryIcon = (category: ExerciseCategory) => {
 };
 
 export const LibraryView: React.FC<LibraryViewProps> = ({
-  exercises, templates, onAddExercise, onDeleteExercise, onToggleFavorite, onAddTemplate, onUpdateTemplate, onDeleteTemplate
+  exercises, templates, onAddExercise, onUpdateExercise, onDeleteExercise, onToggleFavorite, onAddTemplate, onUpdateTemplate, onDeleteTemplate
 }) => {
   const [activeTab, setActiveTab] = useState<TabState>('EXERCISES');
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,15 +56,22 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
   const [showAddTplModal, setShowAddTplModal] = useState(false);
 
   // New Exercise State
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [newExerciseName, setNewExerciseName] = useState('');
   const [newExerciseCategory, setNewExerciseCategory] = useState<ExerciseCategory>(ExerciseCategory.CUSTOM);
   const [newExerciseMuscle, setNewExerciseMuscle] = useState('');
+  const [newExerciseType, setNewExerciseType] = useState<ExerciseType>(ExerciseType.REPS);
 
   // Template State (Create or Edit)
   const [editingTemplateId, setEditingTemplateId] = useState<string | null>(null);
   const [newTemplateName, setNewTemplateName] = useState('');
   const [tplDraftItems, setTplDraftItems] = useState<{ exerciseId: string; sets: number; reps: number }[]>([]);
   const [tplPickerTab, setTplPickerTab] = useState<ExerciseCategory | 'COMMON' | 'CUSTOM'>('COMMON');
+
+  // AI State
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Filter main list (Handles both EXERCISES and FAVORITES tabs)
   const filteredExercises = exercises.filter(e => {
@@ -82,17 +96,36 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
 
   const handleAddExerciseAction = () => {
     if (!newExerciseName) return;
-    const newExercise: Exercise = {
-      id: crypto.randomUUID(),
+
+    const exerciseData: Exercise = {
+      id: editingExerciseId || crypto.randomUUID(),
       name: newExerciseName,
       category: newExerciseCategory,
       muscleGroup: newExerciseMuscle || '综合',
-      isFavorite: false
+      isFavorite: editingExerciseId ? (exercises.find(e => e.id === editingExerciseId)?.isFavorite || false) : false,
+      type: newExerciseType
     };
-    onAddExercise(newExercise);
+
+    if (editingExerciseId) {
+      onUpdateExercise(exerciseData);
+    } else {
+      onAddExercise(exerciseData);
+    }
+
     setShowAddExModal(false);
+    setEditingExerciseId(null);
     setNewExerciseName('');
     setNewExerciseMuscle('');
+    setNewExerciseType(ExerciseType.REPS);
+  };
+
+  const openEditExerciseModal = (ex: Exercise) => {
+    setEditingExerciseId(ex.id);
+    setNewExerciseName(ex.name);
+    setNewExerciseCategory(ex.category);
+    setNewExerciseMuscle(ex.muscleGroup);
+    setNewExerciseType(ex.type || ExerciseType.REPS);
+    setShowAddExModal(true);
   };
 
   const openNewTemplateModal = () => {
@@ -136,6 +169,57 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
     setEditingTemplateId(null);
     setNewTemplateName('');
     setTplDraftItems([]);
+  };
+
+  const handleAiCreateTemplate = async () => {
+    if (!aiPrompt) return;
+    setIsGenerating(true);
+    try {
+      const generatedPlan = await generateSmartWorkout(aiPrompt, exercises);
+
+      const newItems: { exerciseId: string; sets: number; reps: number }[] = [];
+
+      for (const item of generatedPlan) {
+        let exercise = exercises.find(e => e.name === item.name);
+
+        if (!exercise) {
+          // Auto-create new exercise
+          exercise = {
+            id: crypto.randomUUID(),
+            name: item.name,
+            category: ExerciseCategory.CUSTOM, // Default to custom
+            muscleGroup: item.muscleGroup || '综合',
+            isFavorite: false
+          };
+          onAddExercise(exercise);
+        }
+
+        newItems.push({
+          exerciseId: exercise.id,
+          sets: item.suggestedSets || 3,
+          reps: item.suggestedReps || 10
+        });
+      }
+
+      const newTemplate: WorkoutTemplate = {
+        id: crypto.randomUUID(),
+        name: `AI生成: ${aiPrompt.substring(0, 10)}...`,
+        items: newItems.map(item => ({
+          exerciseId: item.exerciseId,
+          defaultSets: item.sets,
+          defaultReps: item.reps
+        }))
+      };
+
+      onAddTemplate(newTemplate);
+      setShowAiModal(false);
+      setAiPrompt('');
+    } catch (error) {
+      console.error("AI Generation Failed", error);
+      alert("AI 生成失败，请检查 API Key 配置或稍后重试。");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const addToDraft = (exId: string) => {
@@ -184,7 +268,10 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       {activeTab === 'TEMPLATES' ? (
         /* TEMPLATES VIEW */
         <>
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-4 gap-2">
+            <Button onClick={() => setShowAiModal(true)} size="sm" variant="secondary" icon={<Sparkles size={16} className="text-indigo-500" />}>
+              AI 生成
+            </Button>
             <Button onClick={openNewTemplateModal} size="sm" icon={<Plus size={16} />}>
               新建模板
             </Button>
@@ -258,7 +345,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               >
                 全部
               </button>
-              {Object.values(ExerciseCategory).map(cat => (
+              {Object.values(ExerciseCategory).filter(c => c !== ExerciseCategory.CUSTOM).map(cat => (
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
@@ -292,6 +379,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 </div>
                 <div className="flex space-x-1">
                   <button
+                    onClick={() => openEditExerciseModal(exercise)}
+                    className="p-2 text-zinc-300 hover:text-indigo-500 transition-colors"
+                  >
+                    <Edit2 size={18} />
+                  </button>
+                  <button
                     onClick={() => onToggleFavorite(exercise.id)}
                     className={`p-2 transition-colors ${exercise.isFavorite ? 'text-red-500' : 'text-zinc-300 hover:text-red-400'}`}
                   >
@@ -301,7 +394,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     onClick={() => onDeleteExercise(exercise.id)}
                     className="p-2 text-zinc-300 hover:text-red-500 transition-colors"
                   >
-                    <X size={18} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>
@@ -310,11 +403,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         </>
       )}
 
-      {/* Add Exercise Modal */}
+      {/* Add/Edit Exercise Modal */}
       {showAddExModal && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white shadow-xl border border-zinc-200 w-full max-w-md rounded-2xl p-6 space-y-4">
-            <h3 className="text-xl font-bold text-textMain">添加新动作</h3>
+            <h3 className="text-xl font-bold text-textMain">{editingExerciseId ? '编辑动作' : '添加新动作'}</h3>
             <div className="space-y-3">
               <div>
                 <label className="text-xs text-textMuted block mb-1">动作名称</label>
@@ -327,15 +420,24 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               </div>
               <div>
                 <label className="text-xs text-textMuted block mb-1">部位分类</label>
-                <select
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-lg p-2 text-textMain focus:ring-2 focus:ring-primary focus:outline-none"
+                <Select
                   value={newExerciseCategory}
-                  onChange={(e) => setNewExerciseCategory(e.target.value as ExerciseCategory)}
-                >
-                  {Object.values(ExerciseCategory).map(c => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  onChange={(val) => setNewExerciseCategory(val as ExerciseCategory)}
+                  options={Object.values(ExerciseCategory)
+                    .filter(c => c !== ExerciseCategory.CUSTOM)
+                    .map(c => ({ value: c, label: c }))}
+                />
+              </div>
+              <div>
+                <label className="text-xs text-textMuted block mb-1">动作类型</label>
+                <Select
+                  value={newExerciseType}
+                  onChange={(val) => setNewExerciseType(val as ExerciseType)}
+                  options={[
+                    { value: ExerciseType.REPS, label: '次数 (Reps)' },
+                    { value: ExerciseType.DURATION, label: '时间 (Duration)' }
+                  ]}
+                />
               </div>
               <div>
                 <label className="text-xs text-textMuted block mb-1">具体肌群/备注</label>
@@ -425,9 +527,9 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               <div className="p-2 border-b border-zinc-100 flex gap-2 overflow-x-auto no-scrollbar">
                 <button onClick={() => setTplPickerTab('COMMON')} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === 'COMMON' ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-600'}`}>常用</button>
                 {Object.values(ExerciseCategory).filter(c => c !== ExerciseCategory.CUSTOM).map(c => (
-                  <button key={c} onClick={() => setTplPickerTab(c)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === c ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}`}>{c}</button>
+                  <button key={c} onClick={() => setTplPickerTab(c)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === c ? 'bg-indigo-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>{c}</button>
                 ))}
-                <button onClick={() => setTplPickerTab(ExerciseCategory.CUSTOM)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === ExerciseCategory.CUSTOM ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
+                <button onClick={() => setTplPickerTab(ExerciseCategory.CUSTOM)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === ExerciseCategory.CUSTOM ? 'bg-indigo-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 {pickerExercises.map(ex => (
@@ -437,7 +539,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     className="flex items-center justify-between p-2 hover:bg-zinc-50 rounded-lg cursor-pointer border border-transparent hover:border-zinc-100 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <Plus size={14} className="text-primary" />
+                      <Plus size={14} className="text-indigo-500" />
                       <span className="text-sm text-textMain">{ex.name}</span>
                     </div>
                     <span className="text-[10px] text-zinc-400">{ex.category}</span>
@@ -455,6 +557,41 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           </div>
         </div>
       )}
+      {/* AI Create Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white shadow-xl border border-zinc-200 w-full max-w-md rounded-2xl p-6 space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
+                <Sparkles className="text-indigo-500" size={24} />
+                AI 智能生成模板
+              </h3>
+              <button onClick={() => setShowAiModal(false)} className="text-zinc-400 hover:text-zinc-600"><X size={20} /></button>
+            </div>
+
+            <p className="text-sm text-zinc-500">
+              输入你的训练计划，AI 将自动识别动作、组数和次数，并生成模板。
+              <br />
+              <span className="text-xs opacity-70">例如：标准俯卧撑 15*3，深蹲 15*3</span>
+            </p>
+
+            <textarea
+              className="w-full h-32 bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              placeholder="请输入训练内容..."
+              value={aiPrompt}
+              onChange={e => setAiPrompt(e.target.value)}
+            />
+
+            <div className="flex justify-end space-x-3 mt-2">
+              <Button variant="ghost" onClick={() => setShowAiModal(false)}>取消</Button>
+              <Button onClick={handleAiCreateTemplate} disabled={!aiPrompt || isGenerating} icon={isGenerating ? <Activity className="animate-spin" size={18} /> : <Sparkles size={18} />}>
+                {isGenerating ? '生成中...' : '开始生成'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };

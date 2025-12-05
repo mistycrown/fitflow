@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
-import { DailyWorkout, Exercise, WorkoutSet } from '../types';
-import { CheckCircle2, Circle, Plus, Trash2, ChevronDown, ChevronUp, Trophy } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { DailyWorkout, Exercise, WorkoutSet, ExerciseType } from '../types';
+import { CheckCircle2, Circle, Plus, Trash2, ChevronDown, ChevronUp, Trophy, Timer, Play, Pause, RotateCcw } from 'lucide-react';
 import { Button } from './Button';
 
 interface TodayViewProps {
@@ -10,6 +10,119 @@ interface TodayViewProps {
   onUpdateWorkout: (workout: DailyWorkout) => void;
   onAddExercise: () => void;
 }
+
+const SetRow: React.FC<{
+  set: WorkoutSet;
+  index: number;
+  type: ExerciseType;
+  onUpdate: (val: string) => void;
+  onToggle: () => void;
+  onRemove: () => void;
+}> = ({ set, index, type, onUpdate, onToggle, onRemove }) => {
+  const [isRunning, setIsRunning] = useState(false);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const intervalRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isRunning && remaining !== null && remaining > 0) {
+      intervalRef.current = window.setInterval(() => {
+        setRemaining(prev => {
+          if (prev === null || prev <= 0) return 0;
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (remaining === 0) {
+      // Timer finished
+      setIsRunning(false);
+      setRemaining(null);
+      if (!set.completed) {
+        onToggle();
+      }
+    } else {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    }
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [isRunning, remaining, set.completed, onToggle]);
+
+  const toggleTimer = () => {
+    if (isRunning) {
+      setIsRunning(false);
+    } else {
+      if (remaining === null) {
+        setRemaining(parseInt(set.reps.toString()) || 0);
+      }
+      setIsRunning(true);
+    }
+  };
+
+  const resetTimer = () => {
+    setIsRunning(false);
+    setRemaining(null);
+  };
+
+  return (
+    <div className={`grid grid-cols-10 gap-2 items-center text-center py-3 rounded-xl transition-all duration-300 ${set.completed ? 'bg-indigo-500/5' : 'bg-zinc-50'}`}>
+      {/* Col 1-4: Index + Timer Controls */}
+      <div className="col-span-4 flex items-center justify-center gap-2 pl-2">
+        <span className="text-sm font-bold text-zinc-400">#{index + 1}</span>
+        {type === ExerciseType.DURATION && !set.completed && (
+          <div className="flex gap-1">
+            <button onClick={toggleTimer} className={`p-1.5 rounded-full transition-colors ${isRunning ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 text-indigo-600'}`}>
+              {isRunning ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
+            </button>
+            {(isRunning || remaining !== null) && (
+              <button onClick={resetTimer} className="p-1.5 rounded-full bg-zinc-200 text-zinc-500 hover:bg-zinc-300 transition-colors">
+                <RotateCcw size={12} />
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Col 5-7: Input */}
+      <div className="col-span-3">
+        {type === ExerciseType.DURATION ? (
+          <div className="relative mx-auto max-w-[100px] flex items-center justify-center gap-1">
+            <input
+              type="number"
+              value={remaining !== null ? remaining : set.reps}
+              onChange={(e) => onUpdate(e.target.value)}
+              readOnly={remaining !== null}
+              className={`w-16 text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all ${set.completed ? 'text-indigo-600' : 'text-zinc-900'} ${remaining !== null ? 'text-amber-600' : ''}`}
+              placeholder="0"
+            />
+            <span className="text-xs text-zinc-400 font-medium">s</span>
+          </div>
+        ) : (
+          <div className="relative mx-auto max-w-[80px]">
+            <input
+              type="number"
+              value={set.reps}
+              onChange={(e) => onUpdate(e.target.value)}
+              className={`w-full text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all ${set.completed ? 'text-indigo-600' : 'text-zinc-900'}`}
+              placeholder="0"
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Col 8-10: Actions */}
+      <div className="col-span-3 flex justify-center items-center space-x-2">
+        <button
+          onClick={() => { setIsRunning(false); setRemaining(null); onToggle(); }}
+          className={`p-2 rounded-full transition-all duration-300 active:scale-90 ${set.completed ? 'text-indigo-500 bg-white shadow-sm' : 'text-zinc-300 hover:text-zinc-400'}`}
+        >
+          {set.completed ? <CheckCircle2 size={28} className="fill-current" /> : <Circle size={28} strokeWidth={1.5} />}
+        </button>
+        {!set.completed && (
+          <button onClick={onRemove} className="p-2 text-zinc-300 hover:text-red-500 transition-colors">
+            <Trash2 size={16} />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpdateWorkout, onAddExercise }) => {
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
@@ -127,7 +240,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
       {/* Exercises List */}
       <div className="space-y-4">
         {workout.items.map((item, index) => {
-          const exercise = exercises.find(e => e.id === item.exerciseId) || { name: '未知动作', muscleGroup: '综合' };
+          const exercise = exercises.find(e => e.id === item.exerciseId) || { name: '未知动作', muscleGroup: '综合', type: ExerciseType.REPS };
           const isExpanded = expandedItems[item.id] ?? true;
           const completedCount = item.sets.filter(s => s.completed).length;
           const isFullyComplete = completedCount === item.sets.length && item.sets.length > 0;
@@ -151,8 +264,20 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
                     <p className="text-xs text-zinc-500 font-medium bg-zinc-100 inline-block px-2 py-0.5 rounded-md mt-1">{item.sets.length} 组 • {exercise.muscleGroup}</p>
                   </div>
                 </div>
-                <div className={`p-2 rounded-full transition-transform duration-300 ${isExpanded ? 'rotate-180 bg-zinc-100' : ''}`}>
-                  <ChevronDown size={20} className="text-zinc-400" />
+                <div className="flex items-center gap-2">
+                  <div className={`p-2 rounded-full transition-transform duration-300 ${isExpanded ? 'rotate-180 bg-zinc-100' : ''}`}>
+                    <ChevronDown size={20} className="text-zinc-400" />
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const updatedItems = workout.items.filter(i => i.id !== item.id);
+                      onUpdateWorkout({ ...workout, items: updatedItems });
+                    }}
+                    className="p-2 rounded-full hover:bg-red-50 text-zinc-300 hover:text-red-500 transition-colors"
+                  >
+                    <Trash2 size={18} />
+                  </button>
                 </div>
               </div>
 
@@ -160,38 +285,20 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
                 <div className="px-5 pb-5 space-y-3">
                   <div className="grid grid-cols-10 gap-3 text-xs text-zinc-400 uppercase tracking-wider mb-2 text-center font-bold px-2">
                     <div className="col-span-2">组数</div>
-                    <div className="col-span-5">次数</div>
+                    <div className="col-span-5">{exercise.type === ExerciseType.DURATION ? '时长 (秒)' : '次数'}</div>
                     <div className="col-span-3">状态</div>
                   </div>
 
                   {item.sets.map((set, index) => (
-                    <div key={set.id} className={`grid grid-cols-10 gap-3 items-center text-center py-3 rounded-xl transition-all duration-300 ${set.completed ? 'bg-indigo-500/5' : 'bg-zinc-50'}`}>
-                      <div className="col-span-2 text-sm font-bold text-zinc-400">#{index + 1}</div>
-                      <div className="col-span-5">
-                        <div className="relative mx-auto max-w-[80px]">
-                          <input
-                            type="number"
-                            value={set.reps}
-                            onChange={(e) => updateSetData(item.id, set.id, e.target.value)}
-                            className={`w-full text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all ${set.completed ? 'text-indigo-600' : 'text-zinc-900'}`}
-                            placeholder="0"
-                          />
-                        </div>
-                      </div>
-                      <div className="col-span-3 flex justify-center items-center space-x-2">
-                        <button
-                          onClick={() => toggleSetComplete(item.id, set.id)}
-                          className={`p-2 rounded-full transition-all duration-300 active:scale-90 ${set.completed ? 'text-indigo-500 bg-white shadow-sm' : 'text-zinc-300 hover:text-zinc-400'}`}
-                        >
-                          {set.completed ? <CheckCircle2 size={28} className="fill-current" /> : <Circle size={28} strokeWidth={1.5} />}
-                        </button>
-                        {!set.completed && (
-                          <button onClick={() => removeSet(item.id, set.id)} className="p-2 text-zinc-300 hover:text-red-500 transition-colors">
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    <SetRow
+                      key={set.id}
+                      set={set}
+                      index={index}
+                      type={exercise.type || ExerciseType.REPS}
+                      onUpdate={(val) => updateSetData(item.id, set.id, val)}
+                      onToggle={() => toggleSetComplete(item.id, set.id)}
+                      onRemove={() => removeSet(item.id, set.id)}
+                    />
                   ))}
 
                   <div className="pt-3 flex justify-center">

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { DailyWorkout, Exercise, WorkoutTemplate, WorkoutItem, ExerciseCategory, ExercisePreferences } from '../types';
+import { DailyWorkout, Exercise, WorkoutTemplate, WorkoutItem, ExerciseCategory, ExercisePreferences, ExerciseType } from '../types';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Layers, Plus, ClipboardList, X, Save, Heart } from 'lucide-react';
 import { Button } from './Button';
 import { getLocalDateKey } from '../App';
@@ -13,6 +13,7 @@ interface PlanViewProps {
   onAddTemplate: (template: WorkoutTemplate) => void;
   onAssignWorkout: (date: string, items: WorkoutItem[]) => void;
   onUpdatePreference: (exerciseId: string, sets: number, reps: number) => void;
+  onUpdateWorkout: (workout: DailyWorkout) => void;
 }
 
 // Helper to get week days
@@ -34,7 +35,7 @@ const getWeekDays = (startDate: Date) => {
 type TabType = 'COMMON' | 'TEMPLATE' | 'FAVORITE' | ExerciseCategory;
 
 export const PlanView: React.FC<PlanViewProps> = ({
-  exercises, templates, workouts, exercisePreferences, onAddTemplate, onAssignWorkout, onUpdatePreference
+  exercises, templates, workouts, exercisePreferences, onAddTemplate, onAssignWorkout, onUpdatePreference, onUpdateWorkout
 }) => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentWeekStart, setCurrentWeekStart] = useState<Date>(new Date());
@@ -207,7 +208,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full space-y-4 relative overflow-hidden pb-20">
+    <div className="flex flex-col h-full space-y-4 relative overflow-hidden">
 
       {/* --- TOP: Calendar Section --- */}
       <div className="bg-white p-4 pb-2 shadow-sm border-b border-zinc-200 sticky top-0 z-10 flex-none">
@@ -234,15 +235,20 @@ export const PlanView: React.FC<PlanViewProps> = ({
             const isToday = dKey === getLocalDateKey(new Date());
             const hasWorkout = workouts.some(w => w.date === dKey && w.items.length > 0);
 
+            let dayClassName = "flex flex-col items-center justify-center py-2 rounded-2xl cursor-pointer transition-all border relative ";
+            if (isSelected) {
+              dayClassName += "bg-indigo-500 text-white border-indigo-500 shadow-md transform scale-105";
+            } else if (isToday) {
+              dayClassName += "text-indigo-500 font-bold bg-zinc-50 border-zinc-200";
+            } else {
+              dayClassName += "bg-transparent text-zinc-900 border-transparent hover:bg-zinc-50";
+            }
+
             return (
               <div
                 key={day.toISOString()}
                 onClick={() => setSelectedDate(day)}
-                className={`
-                  flex flex-col items-center justify-center py-2 rounded-2xl cursor-pointer transition-all border relative
-                  ${isSelected ? 'bg-indigo-500 text-white border-indigo-500 shadow-md transform scale-105' : 'bg-transparent text-zinc-900 border-transparent hover:bg-zinc-50'}
-                  ${isToday && !isSelected ? 'text-indigo-500 font-bold bg-zinc-50 border-zinc-200' : ''}
-                `}
+                className={dayClassName}
               >
                 <span className="text-[10px] opacity-80">{day.toLocaleDateString('zh-CN', { weekday: 'short' })}</span>
                 <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{day.getDate()}</span>
@@ -284,14 +290,25 @@ export const PlanView: React.FC<PlanViewProps> = ({
             selectedDayWorkout.items.map((item, idx) => {
               const ex = exercises.find(e => e.id === item.exerciseId);
               return (
-                <div key={idx} className="flex items-center justify-between text-sm p-2 bg-zinc-50 rounded-xl border border-zinc-100">
+                <div key={idx} className="flex items-center justify-between text-sm p-2 bg-zinc-50 rounded-xl border border-zinc-100 group">
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 flex items-center justify-center bg-white border border-zinc-200 rounded text-xs font-bold text-zinc-500">
                       {idx + 1}
                     </span>
                     <span className="font-medium text-zinc-900">{ex?.name || '未知动作'}</span>
                   </div>
-                  <span className="text-xs text-zinc-500">{item.sets.length} 组</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-zinc-500">{item.sets.length} 组</span>
+                    <button
+                      onClick={() => {
+                        const updatedItems = selectedDayWorkout.items.filter(i => i.id !== item.id);
+                        onUpdateWorkout({ ...selectedDayWorkout, items: updatedItems });
+                      }}
+                      className="text-zinc-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
                 </div>
               );
             })
@@ -417,7 +434,11 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-zinc-500 mb-1">每组次数 (Reps)</label>
+                <label className="block text-xs font-medium text-zinc-500 mb-1">
+                  {configItem.type === 'EXERCISE' && (configItem.data as Exercise).type === ExerciseType.DURATION
+                    ? '每组时长 (秒)'
+                    : '每组次数 (Reps)'}
+                </label>
                 <input
                   type="number"
                   value={configReps}

@@ -4,7 +4,8 @@ import { TodayView } from './components/TodayView';
 import { PlanView } from './components/PlanView';
 import { LibraryView } from './components/LibraryView';
 import { HistoryView } from './components/HistoryView';
-import { Exercise, DailyWorkout, ViewState, WorkoutItem, WorkoutTemplate, ExercisePreferences } from './types';
+import { SettingsView } from './components/SettingsView';
+import { Exercise, DailyWorkout, ViewState, WorkoutItem, WorkoutTemplate, ExercisePreferences, AiSettings } from './types';
 import { INITIAL_EXERCISES } from './constants';
 
 // Helper to get local date string YYYY-MM-DD
@@ -18,19 +19,19 @@ export const getLocalDateKey = (date: Date = new Date()) => {
 const App: React.FC = () => {
   // Global State
   const [view, setView] = useState<ViewState>('TODAY');
-  
+
   const [exercises, setExercises] = useState<Exercise[]>(() => {
-    const saved = localStorage.getItem('fitflow_exercises_v3');
+    const saved = localStorage.getItem('fitflow_exercises_v4');
     return saved ? JSON.parse(saved) : INITIAL_EXERCISES;
   });
 
   const [workouts, setWorkouts] = useState<DailyWorkout[]>(() => {
-    const saved = localStorage.getItem('fitflow_workouts_v3');
+    const saved = localStorage.getItem('fitflow_workouts_v4');
     return saved ? JSON.parse(saved) : [];
   });
 
   const [templates, setTemplates] = useState<WorkoutTemplate[]>(() => {
-    const saved = localStorage.getItem('fitflow_templates_v3');
+    const saved = localStorage.getItem('fitflow_templates_v4');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -39,22 +40,31 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : {};
   });
 
+  const [aiSettings, setAiSettings] = useState<AiSettings>(() => {
+    const saved = localStorage.getItem('fitflow_ai_settings');
+    return saved ? JSON.parse(saved) : { provider: 'GEMINI', apiKey: '' };
+  });
+
   // Persistence Effects
   useEffect(() => {
-    localStorage.setItem('fitflow_exercises_v3', JSON.stringify(exercises));
+    localStorage.setItem('fitflow_exercises_v4', JSON.stringify(exercises));
   }, [exercises]);
 
   useEffect(() => {
-    localStorage.setItem('fitflow_workouts_v3', JSON.stringify(workouts));
+    localStorage.setItem('fitflow_workouts_v4', JSON.stringify(workouts));
   }, [workouts]);
 
   useEffect(() => {
-    localStorage.setItem('fitflow_templates_v3', JSON.stringify(templates));
+    localStorage.setItem('fitflow_templates_v4', JSON.stringify(templates));
   }, [templates]);
 
   useEffect(() => {
     localStorage.setItem('fitflow_preferences_v1', JSON.stringify(preferences));
   }, [preferences]);
+
+  useEffect(() => {
+    localStorage.setItem('fitflow_ai_settings', JSON.stringify(aiSettings));
+  }, [aiSettings]);
 
   // Derived State (Use Local Date)
   const todayStr = getLocalDateKey(new Date());
@@ -74,13 +84,13 @@ const App: React.FC = () => {
 
   const handleAssignWorkout = (date: string, items: WorkoutItem[]) => {
     setWorkouts(prev => {
-        // If workout exists for date, append items. Else create new.
-        const existing = prev.find(w => w.date === date);
-        if (existing) {
-            return prev.map(w => w.date === date ? { ...w, items: [...w.items, ...items] } : w);
-        } else {
-            return [...prev, { date, items }];
-        }
+      // If workout exists for date, append items. Else create new.
+      const existing = prev.find(w => w.date === date);
+      if (existing) {
+        return prev.map(w => w.date === date ? { ...w, items: [...w.items, ...items] } : w);
+      } else {
+        return [...prev, { date, items }];
+      }
     });
   };
 
@@ -96,9 +106,11 @@ const App: React.FC = () => {
   };
 
   const handleDeleteExercise = (id: string) => {
-      if (confirm("确定要删除这个动作吗?")) {
-        setExercises(prev => prev.filter(e => e.id !== id));
-      }
+    setExercises(prev => prev.filter(e => e.id !== id));
+  };
+
+  const handleUpdateExercise = (updatedExercise: Exercise) => {
+    setExercises(prev => prev.map(e => e.id === updatedExercise.id ? updatedExercise : e));
   };
 
   const handleToggleFavorite = (id: string) => {
@@ -106,31 +118,33 @@ const App: React.FC = () => {
   };
 
   const handleAddTemplate = (template: WorkoutTemplate) => {
-      setTemplates(prev => [...prev, template]);
+    setTemplates(prev => [...prev, template]);
   };
 
   const handleUpdateTemplate = (updatedTemplate: WorkoutTemplate) => {
-      setTemplates(prev => prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
+    setTemplates(prev => prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
   };
 
   const handleDeleteTemplate = (id: string) => {
-      if (confirm("确定要删除这个模板吗?")) {
-        setTemplates(prev => prev.filter(t => t.id !== id));
-      }
+    setTemplates(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleSaveSettings = (settings: AiSettings) => {
+    setAiSettings(settings);
   };
 
   return (
     <Layout currentView={view} onChangeView={setView}>
       {view === 'TODAY' && (
-        <TodayView 
-          workout={todayWorkout} 
+        <TodayView
+          workout={todayWorkout}
           exercises={exercises}
           onUpdateWorkout={handleUpdateToday}
           onAddExercise={() => setView('PLAN')}
         />
       )}
       {view === 'PLAN' && (
-        <PlanView 
+        <PlanView
           exercises={exercises}
           templates={templates}
           workouts={workouts}
@@ -138,24 +152,32 @@ const App: React.FC = () => {
           onAddTemplate={handleAddTemplate}
           onAssignWorkout={handleAssignWorkout}
           onUpdatePreference={handleUpdatePreference}
+          onUpdateWorkout={handleUpdateToday}
         />
       )}
       {view === 'HISTORY' && (
-        <HistoryView 
+        <HistoryView
           workouts={workouts}
           exercises={exercises}
         />
       )}
       {view === 'LIBRARY' && (
-        <LibraryView 
+        <LibraryView
           exercises={exercises}
           templates={templates}
           onAddExercise={handleAddExercise}
+          onUpdateExercise={handleUpdateExercise}
           onDeleteExercise={handleDeleteExercise}
           onToggleFavorite={handleToggleFavorite}
           onAddTemplate={handleAddTemplate}
           onUpdateTemplate={handleUpdateTemplate}
           onDeleteTemplate={handleDeleteTemplate}
+        />
+      )}
+      {view === 'SETTINGS' && (
+        <SettingsView
+          initialSettings={aiSettings}
+          onSaveSettings={handleSaveSettings}
         />
       )}
     </Layout>
