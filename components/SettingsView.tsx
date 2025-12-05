@@ -1,13 +1,24 @@
+
 import React, { useState, useEffect } from 'react';
-import { AiSettings, AiProvider } from '../types';
+import { AiSettings, AiProvider, Exercise, WorkoutTemplate, DailyWorkout } from '../types';
 import { Button } from './Button';
-import { Settings, Save, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Settings, Save, CheckCircle2, AlertCircle, Cloud, LogOut, RefreshCw, Loader2 } from 'lucide-react';
+import { AuthView } from './AuthView';
+import { getUser, syncExercises, syncTemplates, syncWorkouts } from '../services/syncService';
+import { supabase } from '../src/supabaseClient';
+import { ToastType } from './Toast';
 
 interface SettingsViewProps {
     onSaveSettings: (settings: AiSettings) => void;
     initialSettings: AiSettings;
     currentTheme?: string;
     onThemeChange?: (theme: string) => void;
+    // Data Sync Props
+    exercises?: Exercise[];
+    templates?: WorkoutTemplate[];
+    workouts?: DailyWorkout[];
+    onDataSync?: (exercises: Exercise[], templates: WorkoutTemplate[], workouts: DailyWorkout[]) => void;
+    onShowToast?: (message: string, type: ToastType) => void;
 }
 
 const PROVIDERS: { id: AiProvider; name: string; defaultBaseUrl?: string; defaultModel?: string }[] = [
@@ -26,12 +37,67 @@ const THEMES = [
     { id: 'violet', name: '罗兰紫 (Violet)', color: '#8b5cf6' },
 ];
 
-export const SettingsView: React.FC<SettingsViewProps> = ({ onSaveSettings, initialSettings, currentTheme = 'default', onThemeChange }) => {
+export const SettingsView: React.FC<SettingsViewProps> = ({
+    onSaveSettings,
+    initialSettings,
+    currentTheme = 'default',
+    onThemeChange,
+    exercises,
+    templates,
+    workouts,
+    onDataSync,
+    onShowToast
+}) => {
     const [provider, setProvider] = useState<AiProvider>(initialSettings.provider || 'GEMINI');
     const [apiKey, setApiKey] = useState(initialSettings.apiKey || '');
     const [baseUrl, setBaseUrl] = useState(initialSettings.baseUrl || '');
     const [modelName, setModelName] = useState(initialSettings.modelName || '');
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // Auth & Sync State
+    const [user, setUser] = useState<any>(null);
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    useEffect(() => {
+        checkUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const checkUser = async () => {
+        const u = await getUser();
+        setUser(u);
+    };
+
+    const handleSync = async () => {
+        if (!user || !onDataSync || !exercises || !templates || !workouts) return;
+        setIsSyncing(true);
+        try {
+            // 1. Sync Exercises
+            const syncedExercises = await syncExercises(exercises);
+            // 2. Sync Templates
+            const syncedTemplates = await syncTemplates(templates);
+            // 3. Sync Workouts
+            const syncedWorkouts = await syncWorkouts(workouts);
+
+            // Update App State
+            onDataSync(syncedExercises, syncedTemplates, syncedWorkouts);
+        } catch (err: any) {
+            onShowToast?.('同步失败: ' + err.message, 'error');
+            console.error(err);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+    };
 
     // Auto-fill defaults when provider changes, if fields are empty or match previous defaults
     useEffect(() => {
@@ -62,6 +128,42 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onSaveSettings, init
             <div className="flex items-center gap-2 mb-2">
                 <Settings className="text-zinc-900" size={28} />
                 <h2 className="text-2xl font-bold text-zinc-900">设置</h2>
+            </div>
+
+            {/* Cloud Sync Section */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-zinc-200 space-y-4">
+                <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
+                    <Cloud className="text-primary" size={20} />
+                    云端同步
+                </h3>
+
+                {!user ? (
+                    <AuthView onLoginSuccess={() => checkUser()} onShowToast={onShowToast} />
+                ) : (
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between bg-zinc-50 p-3 rounded-xl border border-zinc-100">
+                            <div className="text-sm text-zinc-600">
+                                当前登录: <span className="font-bold text-zinc-900">{user.email}</span>
+                            </div>
+                            <button onClick={handleLogout} className="text-xs text-red-500 hover:underline flex items-center gap-1">
+                                <LogOut size={12} /> 退出
+                            </button>
+                        </div>
+
+                        <div className="bg-primary/5 p-4 rounded-xl text-sm text-zinc-600 mb-2">
+                            点击下方按钮将本地数据备份到云端，并从云端拉取最新数据。
+                        </div>
+
+                        <Button
+                            onClick={handleSync}
+                            disabled={isSyncing}
+                            className="w-full"
+                            icon={isSyncing ? <Loader2 className="animate-spin" /> : <RefreshCw size={18} />}
+                        >
+                            {isSyncing ? '同步中...' : '立即同步数据'}
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Theme Settings */}

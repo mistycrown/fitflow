@@ -5,6 +5,7 @@ import { PlanView } from './components/PlanView';
 import { LibraryView } from './components/LibraryView';
 import { HistoryView } from './components/HistoryView';
 import { SettingsView } from './components/SettingsView';
+import { Toast, ToastType } from './components/Toast';
 import { Exercise, DailyWorkout, ViewState, WorkoutItem, WorkoutTemplate, ExercisePreferences, AiSettings } from './types';
 import { INITIAL_EXERCISES } from './constants';
 
@@ -19,6 +20,11 @@ export const getLocalDateKey = (date: Date = new Date()) => {
 const App: React.FC = () => {
   // Global State
   const [view, setView] = useState<ViewState>('TODAY');
+  const [toast, setToast] = useState<{ message: string; type: ToastType; visible: boolean }>({ message: '', type: 'info', visible: false });
+
+  const showToast = (message: string, type: ToastType = 'info') => {
+    setToast({ message, type, visible: true });
+  };
 
   const [exercises, setExercises] = useState<Exercise[]>(() => {
     const saved = localStorage.getItem('fitflow_exercises_v4');
@@ -143,6 +149,15 @@ const App: React.FC = () => {
     setAiSettings(settings);
   };
 
+  // Data Sync Handler
+  const handleDataSync = (newExercises: Exercise[], newTemplates: WorkoutTemplate[], newWorkouts: DailyWorkout[]) => {
+    setExercises(newExercises);
+    setTemplates(newTemplates);
+    setWorkouts(newWorkouts);
+    setWorkouts(newWorkouts);
+    showToast('同步完成！数据已更新', 'success');
+  };
+
   return (
     <Layout currentView={view} onChangeView={setView}>
       {view === 'TODAY' && (
@@ -190,6 +205,18 @@ const App: React.FC = () => {
           onSaveSettings={handleSaveSettings}
           currentTheme={theme}
           onThemeChange={setTheme}
+          exercises={exercises}
+          templates={templates}
+          workouts={workouts}
+          onDataSync={handleDataSync}
+          onShowToast={showToast}
+        />
+      )}
+      {toast.visible && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(prev => ({ ...prev, visible: false }))}
         />
       )}
     </Layout>
