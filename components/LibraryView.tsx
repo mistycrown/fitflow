@@ -354,6 +354,12 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                   {cat}
                 </button>
               ))}
+              <button
+                onClick={() => setActiveCategory(ExerciseCategory.CUSTOM)}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeCategory === ExerciseCategory.CUSTOM ? 'bg-primary text-white border-primary' : 'bg-white text-zinc-600 border-zinc-200'}`}
+              >
+                自定义
+              </button>
             </div>
           )}
 

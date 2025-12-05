@@ -19,14 +19,20 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
   ];
 
   return (
-    <div className="h-screen bg-zinc-100 text-zinc-900 flex flex-col max-w-md mx-auto shadow-2xl overflow-hidden relative border-x border-zinc-200/50">
+    <div
+      className="h-full bg-zinc-100 text-zinc-900 flex flex-col max-w-md mx-auto shadow-2xl overflow-hidden relative border-x border-zinc-200/50"
+      style={{
+        paddingTop: 'env(safe-area-inset-top)',
+        paddingBottom: 'env(safe-area-inset-bottom)'
+      }}
+    >
       <main className="flex-1 overflow-hidden relative">
         <div className="h-full w-full animate-fade-in">
           {children}
         </div>
       </main>
 
-      <nav className="bg-white/80 backdrop-blur-xl pb-safe z-50">
+      <nav className="bg-white/80 backdrop-blur-xl pb-safe pb-2 z-50">
         <div className="grid grid-cols-5 h-14">
           {navItems.map((item) => {
             const Icon = item.icon;

@@ -2,11 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { AiSettings, AiProvider, Exercise, WorkoutTemplate, DailyWorkout } from '../types';
 import { Button } from './Button';
-import { Settings, Save, CheckCircle2, AlertCircle, Cloud, LogOut, RefreshCw, Loader2 } from 'lucide-react';
+import { Settings, Save, CheckCircle2, AlertCircle, Cloud, LogOut, RefreshCw, Loader2, UploadCloud, DownloadCloud } from 'lucide-react';
 import { AuthView } from './AuthView';
-import { getUser, syncExercises, syncTemplates, syncWorkouts } from '../services/syncService';
+import { getUser, pushExercises, pullExercises, pushTemplates, pullTemplates, pushWorkouts, pullWorkouts } from '../services/syncService';
 import { supabase } from '../src/supabaseClient';
 import { ToastType } from './Toast';
+
 
 interface SettingsViewProps {
     onSaveSettings: (settings: AiSettings) => void;
@@ -73,21 +74,34 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
         setUser(u);
     };
 
-    const handleSync = async () => {
-        if (!user || !onDataSync || !exercises || !templates || !workouts) return;
+    const handlePush = async () => {
+        if (!user || !exercises || !templates || !workouts) return;
         setIsSyncing(true);
         try {
-            // 1. Sync Exercises
-            const syncedExercises = await syncExercises(exercises);
-            // 2. Sync Templates
-            const syncedTemplates = await syncTemplates(templates);
-            // 3. Sync Workouts
-            const syncedWorkouts = await syncWorkouts(workouts);
-
-            // Update App State
-            onDataSync(syncedExercises, syncedTemplates, syncedWorkouts);
+            await pushExercises(exercises);
+            await pushTemplates(templates);
+            await pushWorkouts(workouts);
+            onShowToast?.('上传成功！本地数据已覆盖云端。', 'success');
         } catch (err: any) {
-            onShowToast?.('同步失败: ' + err.message, 'error');
+            onShowToast?.('上传失败: ' + err.message, 'error');
+            console.error(err);
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    const handlePull = async () => {
+        if (!user || !onDataSync) return;
+        setIsSyncing(true);
+        try {
+            const remoteExercises = await pullExercises();
+            const remoteTemplates = await pullTemplates();
+            const remoteWorkouts = await pullWorkouts();
+
+            onDataSync(remoteExercises, remoteTemplates, remoteWorkouts);
+            onShowToast?.('下载成功！云端数据已覆盖本地。', 'success');
+        } catch (err: any) {
+            onShowToast?.('下载失败: ' + err.message, 'error');
             console.error(err);
         } finally {
             setIsSyncing(false);
@@ -151,17 +165,29 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                         </div>
 
                         <div className="bg-primary/5 p-4 rounded-xl text-sm text-zinc-600 mb-2">
-                            点击下方按钮将本地数据备份到云端，并从云端拉取最新数据。
+                            请选择同步方向。上传将把本地最新数据推送到云端，下载将用云端数据覆盖本地。
                         </div>
 
-                        <Button
-                            onClick={handleSync}
-                            disabled={isSyncing}
-                            className="w-full"
-                            icon={isSyncing ? <Loader2 className="animate-spin" /> : <RefreshCw size={18} />}
-                        >
-                            {isSyncing ? '同步中...' : '立即同步数据'}
-                        </Button>
+                        <div className="grid grid-cols-2 gap-3">
+                            <Button
+                                onClick={handlePush}
+                                disabled={isSyncing}
+                                className="w-full"
+                                variant="outline"
+                                icon={isSyncing ? <Loader2 className="animate-spin" /> : <UploadCloud size={18} />}
+                            >
+                                上传
+                            </Button>
+
+                            <Button
+                                onClick={handlePull}
+                                disabled={isSyncing}
+                                className="w-full"
+                                icon={isSyncing ? <Loader2 className="animate-spin" /> : <DownloadCloud size={18} />}
+                            >
+                                下载
+                            </Button>
+                        </div>
                     </div>
                 )}
             </div>
