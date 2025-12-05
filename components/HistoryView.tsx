@@ -108,11 +108,11 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ workouts, exercises })
                                 onClick={() => setSelectedDay(day)}
                                 className={`
                           border-b border-r border-zinc-100 p-1 flex flex-col relative cursor-pointer hover:bg-zinc-50 transition-colors
-                          ${isToday ? 'bg-indigo-500/5' : 'bg-white'}
+                          ${isToday ? 'bg-primary/5' : 'bg-white'}
                        `}
                             >
                                 {/* Date Number */}
-                                <div className={`text-xs font-medium mb-1 px-1 flex justify-center items-center h-6 w-6 rounded-full mx-auto ${isToday ? 'bg-indigo-500 text-white' : 'text-zinc-500'}`}>
+                                <div className={`text-xs font-medium mb-1 px-1 flex justify-center items-center h-6 w-6 rounded-full mx-auto ${isToday ? 'bg-primary text-white' : 'text-zinc-500'}`}>
                                     {day.getDate()}
                                 </div>
 
@@ -188,7 +188,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ workouts, exercises })
                                         <div key={idx} className="bg-zinc-50 rounded-xl p-3 border border-zinc-100">
                                             <div className="flex justify-between items-start mb-2">
                                                 <h4 className="font-bold text-textMain flex items-center gap-2">
-                                                    {isFullyComplete && <CheckCircle2 size={16} className="text-indigo-500" />}
+                                                    {isFullyComplete && <CheckCircle2 size={16} className="text-primary" />}
                                                     {ex?.name || '未知动作'}
                                                 </h4>
                                                 <span className="text-xs font-medium text-zinc-500 bg-white border border-zinc-200 px-2 py-0.5 rounded-full">
@@ -202,7 +202,7 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ workouts, exercises })
                                                         className={`
                                                     text-xs py-1.5 rounded-md border
                                                     ${set.completed
-                                                                ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-500 font-medium'
+                                                                ? 'bg-primary/10 border-primary/20 text-primary font-medium'
                                                                 : 'bg-white border-zinc-200 text-zinc-400'}
                                                 `}
                                                     >

@@ -61,13 +61,13 @@ const SetRow: React.FC<{
   };
 
   return (
-    <div className={`grid grid-cols-10 gap-2 items-center text-center py-3 rounded-xl transition-all duration-300 ${set.completed ? 'bg-indigo-500/5' : 'bg-zinc-50'}`}>
+    <div className={`grid grid-cols-10 gap-2 items-center text-center py-3 rounded-xl transition-all duration-300 ${set.completed ? 'bg-primary/5' : 'bg-zinc-50'}`}>
       {/* Col 1-4: Index + Timer Controls */}
       <div className="col-span-4 flex items-center justify-center gap-2 pl-2">
         <span className="text-sm font-bold text-zinc-400">#{index + 1}</span>
         {type === ExerciseType.DURATION && !set.completed && (
           <div className="flex gap-1">
-            <button onClick={toggleTimer} className={`p-1.5 rounded-full transition-colors ${isRunning ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 text-indigo-600'}`}>
+            <button onClick={toggleTimer} className={`p-1.5 rounded-full transition-colors ${isRunning ? 'bg-amber-100 text-amber-600' : 'bg-primary/10 text-primary'}`}>
               {isRunning ? <Pause size={12} fill="currentColor" /> : <Play size={12} fill="currentColor" />}
             </button>
             {(isRunning || remaining !== null) && (
@@ -88,7 +88,7 @@ const SetRow: React.FC<{
               value={remaining !== null ? remaining : set.reps}
               onChange={(e) => onUpdate(e.target.value)}
               readOnly={remaining !== null}
-              className={`w-16 text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all ${set.completed ? 'text-indigo-600' : 'text-zinc-900'} ${remaining !== null ? 'text-amber-600' : ''}`}
+              className={`w-16 text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all ${set.completed ? 'text-primary' : 'text-zinc-900'} ${remaining !== null ? 'text-amber-600' : ''}`}
               placeholder="0"
             />
             <span className="text-xs text-zinc-400 font-medium">s</span>
@@ -99,7 +99,7 @@ const SetRow: React.FC<{
               type="number"
               value={set.reps}
               onChange={(e) => onUpdate(e.target.value)}
-              className={`w-full text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:outline-none transition-all ${set.completed ? 'text-indigo-600' : 'text-zinc-900'}`}
+              className={`w-full text-center bg-white rounded-lg py-1.5 font-mono text-lg font-bold shadow-sm focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all ${set.completed ? 'text-primary' : 'text-zinc-900'}`}
               placeholder="0"
             />
           </div>
@@ -110,7 +110,7 @@ const SetRow: React.FC<{
       <div className="col-span-3 flex justify-center items-center space-x-2">
         <button
           onClick={() => { setIsRunning(false); setRemaining(null); onToggle(); }}
-          className={`p-2 rounded-full transition-all duration-300 active:scale-90 ${set.completed ? 'text-indigo-500 bg-white shadow-sm' : 'text-zinc-300 hover:text-zinc-400'}`}
+          className={`p-2 rounded-full transition-all duration-300 active:scale-90 ${set.completed ? 'text-primary bg-white shadow-sm' : 'text-zinc-300 hover:text-zinc-400'}`}
         >
           {set.completed ? <CheckCircle2 size={28} className="fill-current" /> : <Circle size={28} strokeWidth={1.5} />}
         </button>
@@ -214,7 +214,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
   return (
     <div className="h-full overflow-y-auto p-4 space-y-6 no-scrollbar pb-24">
       {/* Header Summary */}
-      <div className="bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-3xl p-6 shadow-lg shadow-indigo-500/20 text-white relative overflow-hidden">
+      <div className="bg-gradient-to-br from-primary to-primary-dark rounded-3xl p-6 shadow-lg shadow-primary/20 text-white relative overflow-hidden">
         <div className="absolute top-0 right-0 p-8 opacity-10 transform translate-x-4 -translate-y-4">
           <Trophy size={120} />
         </div>
@@ -222,7 +222,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
           <div className="flex justify-between items-end mb-6">
             <div>
               <h1 className="text-3xl font-bold">今日训练</h1>
-              <p className="text-indigo-200 text-sm mt-1 font-medium">{new Date(workout.date).toLocaleDateString('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+              <p className="text-white/80 text-sm mt-1 font-medium">{new Date(workout.date).toLocaleDateString('zh-CN', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
             </div>
             <div className="text-right">
               <span className="text-4xl font-bold tracking-tight">{progress}%</span>
@@ -248,7 +248,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
           return (
             <div
               key={item.id}
-              className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all duration-300 ${isFullyComplete ? 'border-indigo-500/30 shadow-md' : 'border-zinc-100'}`}
+              className={`bg-white rounded-2xl overflow-hidden shadow-sm border transition-all duration-300 ${isFullyComplete ? 'border-primary/30 shadow-md' : 'border-zinc-100'}`}
               style={{ animationDelay: `${index * 0.05}s` }}
             >
               <div
@@ -256,11 +256,11 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
                 onClick={() => toggleExpand(item.id)}
               >
                 <div className="flex items-center space-x-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isFullyComplete ? 'bg-indigo-500 text-white shadow-glow' : 'bg-zinc-100 text-zinc-400'}`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-colors ${isFullyComplete ? 'bg-primary text-white shadow-glow' : 'bg-zinc-100 text-zinc-400'}`}>
                     {isFullyComplete ? <CheckCircle2 size={24} /> : <span className="font-bold text-lg">{exercise.name.substring(0, 1)}</span>}
                   </div>
                   <div>
-                    <h3 className={`font-bold text-lg ${isFullyComplete ? 'text-indigo-600' : 'text-zinc-900'}`}>{exercise.name}</h3>
+                    <h3 className={`font-bold text-lg ${isFullyComplete ? 'text-primary' : 'text-zinc-900'}`}>{exercise.name}</h3>
                     <p className="text-xs text-zinc-500 font-medium bg-zinc-100 inline-block px-2 py-0.5 rounded-md mt-1">{item.sets.length} 组 • {exercise.muscleGroup}</p>
                   </div>
                 </div>
@@ -302,7 +302,7 @@ export const TodayView: React.FC<TodayViewProps> = ({ workout, exercises, onUpda
                   ))}
 
                   <div className="pt-3 flex justify-center">
-                    <Button variant="ghost" size="sm" onClick={() => addSet(item.id)} className="text-xs font-medium text-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 w-full border border-dashed border-indigo-200">
+                    <Button variant="ghost" size="sm" onClick={() => addSet(item.id)} className="text-xs font-medium text-primary hover:text-primary-dark hover:bg-primary/5 w-full border border-dashed border-primary/20">
                       <Plus size={14} className="mr-1" /> 添加一组
                     </Button>
                   </div>

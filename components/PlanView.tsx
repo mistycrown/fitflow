@@ -214,7 +214,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
       <div className="bg-white p-4 pb-2 shadow-sm border-b border-zinc-200 sticky top-0 z-10 flex-none">
         <div className="flex justify-between items-center mb-3">
           <h2 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
-            <CalendarIcon size={18} className="text-indigo-500" />
+            <CalendarIcon size={18} className="text-primary" />
             {currentWeekStart.toLocaleDateString('zh-CN', { month: 'long', year: 'numeric' })}
           </h2>
           <div className="flex gap-1">
@@ -237,9 +237,9 @@ export const PlanView: React.FC<PlanViewProps> = ({
 
             let dayClassName = "flex flex-col items-center justify-center py-2 rounded-2xl cursor-pointer transition-all border relative ";
             if (isSelected) {
-              dayClassName += "bg-indigo-500 text-white border-indigo-500 shadow-md transform scale-105";
+              dayClassName += "bg-primary text-white border-primary shadow-md transform scale-105";
             } else if (isToday) {
-              dayClassName += "text-indigo-500 font-bold bg-zinc-50 border-zinc-200";
+              dayClassName += "text-primary font-bold bg-zinc-50 border-zinc-200";
             } else {
               dayClassName += "bg-transparent text-zinc-900 border-transparent hover:bg-zinc-50";
             }
@@ -253,7 +253,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 <span className="text-[10px] opacity-80">{day.toLocaleDateString('zh-CN', { weekday: 'short' })}</span>
                 <span className={`text-sm font-medium ${isSelected ? 'font-bold' : ''}`}>{day.getDate()}</span>
                 {hasWorkout && (
-                  <div className={`w-1 h-1 rounded-full mt-1 ${isSelected ? 'bg-white' : 'bg-indigo-500'}`}></div>
+                  <div className={`w-1 h-1 rounded-full mt-1 ${isSelected ? 'bg-white' : 'bg-primary'}`}></div>
                 )}
               </div>
             );
@@ -267,13 +267,13 @@ export const PlanView: React.FC<PlanViewProps> = ({
           <div className="flex items-center gap-2">
             <h3 className="font-bold text-zinc-900">{selectedDate.toLocaleDateString('zh-CN', { month: 'numeric', day: 'numeric', weekday: 'long' })} 安排</h3>
             {selectedDayWorkout && selectedDayWorkout.items.length > 0 && (
-              <span className="text-xs text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-full">
+              <span className="text-xs text-primary bg-primary/10 px-2 py-1 rounded-full">
                 {selectedDayWorkout.items.length} 动作
               </span>
             )}
           </div>
           {selectedDayWorkout && selectedDayWorkout.items.length > 0 && (
-            <button onClick={openSaveTemplateModal} className="flex items-center gap-1 text-xs text-indigo-500 hover:text-indigo-600 bg-indigo-500/5 hover:bg-indigo-500/10 px-2 py-1 rounded-lg transition-colors">
+            <button onClick={openSaveTemplateModal} className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark bg-primary/5 hover:bg-primary/10 px-2 py-1 rounded-lg transition-colors">
               <Save size={12} />
               存为模板
             </button>
@@ -321,9 +321,9 @@ export const PlanView: React.FC<PlanViewProps> = ({
         {/* Tabs */}
         <div className="p-3 border-b border-zinc-200 bg-white overflow-x-auto no-scrollbar flex-none">
           <div className="flex space-x-2">
-            <button onClick={() => setActiveTab('COMMON')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === 'COMMON' ? 'bg-zinc-800 text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>常用</button>
-            <button onClick={() => setActiveTab('TEMPLATE')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === 'TEMPLATE' ? 'bg-zinc-800 text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>模板</button>
-            <button onClick={() => setActiveTab('FAVORITE')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${activeTab === 'FAVORITE' ? 'bg-zinc-800 text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>
+            <button onClick={() => setActiveTab('COMMON')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === 'COMMON' ? 'bg-primary text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>常用</button>
+            <button onClick={() => setActiveTab('TEMPLATE')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === 'TEMPLATE' ? 'bg-primary text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>模板</button>
+            <button onClick={() => setActiveTab('FAVORITE')} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${activeTab === 'FAVORITE' ? 'bg-primary text-white shadow-md' : 'bg-zinc-100 text-zinc-600'}`}>
               收藏
             </button>
 
@@ -332,14 +332,14 @@ export const PlanView: React.FC<PlanViewProps> = ({
               <button
                 key={cat}
                 onClick={() => setActiveTab(cat)}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === cat ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30' : 'bg-zinc-100 text-zinc-600'}`}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === cat ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-zinc-100 text-zinc-600'}`}
               >
                 {cat}
               </button>
             ))}
 
             {/* Custom Category */}
-            <button onClick={() => setActiveTab(ExerciseCategory.CUSTOM)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === ExerciseCategory.CUSTOM ? 'bg-indigo-500 text-white shadow-md shadow-indigo-500/30' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
+            <button onClick={() => setActiveTab(ExerciseCategory.CUSTOM)} className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all ${activeTab === ExerciseCategory.CUSTOM ? 'bg-primary text-white shadow-md shadow-primary/30' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
           </div>
         </div>
 
@@ -354,12 +354,12 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 <div
                   key={template.id}
                   onClick={(e) => handleQuickAdd(e, { type: 'TEMPLATE', data: template })}
-                  className="bg-white border border-zinc-200 p-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer flex flex-col justify-between hover:border-indigo-500/50 group"
+                  className="bg-white border border-zinc-200 p-3 rounded-2xl shadow-sm active:scale-95 transition-transform cursor-pointer flex flex-col justify-between hover:border-primary/50 group"
                 >
                   <div className="flex justify-between items-start mb-2">
                     <Layers size={16} className="text-purple-500 mb-1" />
                     <button
-                      className="w-6 h-6 flex items-center justify-center rounded-full bg-zinc-50 text-zinc-400 hover:bg-indigo-500 hover:text-white transition-colors"
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-zinc-50 text-zinc-400 hover:bg-primary hover:text-white transition-colors"
                     >
                       <Plus size={14} />
                     </button>
@@ -379,7 +379,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                 <div
                   key={exercise.id}
                   onClick={() => openAddModal({ type: 'EXERCISE', data: exercise })}
-                  className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer group hover:border-indigo-500/50"
+                  className="bg-white border border-zinc-200 p-3 rounded-2xl flex items-center justify-between shadow-sm active:scale-[0.98] transition-all cursor-pointer group hover:border-primary/50"
                 >
                   <div className="flex items-center gap-3">
                     <div>
@@ -392,7 +392,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   </div>
                   <button
                     onClick={(e) => handleQuickAdd(e, { type: 'EXERCISE', data: exercise })}
-                    className="w-8 h-8 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center hover:bg-indigo-500 hover:text-white transition-colors"
+                    className="w-8 h-8 rounded-full bg-zinc-50 text-zinc-400 flex items-center justify-center hover:bg-primary hover:text-white transition-colors"
                   >
                     <Plus size={16} />
                   </button>
@@ -430,7 +430,7 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   type="number"
                   value={configSets}
                   onChange={(e) => setConfigSets(parseInt(e.target.value) || 0)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-center text-lg font-semibold text-zinc-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-center text-lg font-semibold text-zinc-900 focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
               <div>
@@ -443,12 +443,12 @@ export const PlanView: React.FC<PlanViewProps> = ({
                   type="number"
                   value={configReps}
                   onChange={(e) => setConfigReps(parseInt(e.target.value) || 0)}
-                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-center text-lg font-semibold text-zinc-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-center text-lg font-semibold text-zinc-900 focus:ring-2 focus:ring-primary focus:outline-none"
                 />
               </div>
             </div>
 
-            <Button onClick={handleConfirmAdd} className="w-full shadow-lg shadow-indigo-500/30">
+            <Button onClick={handleConfirmAdd} className="w-full shadow-lg shadow-primary/30">
               确认添加
             </Button>
           </div>
@@ -463,14 +463,14 @@ export const PlanView: React.FC<PlanViewProps> = ({
             <h3 className="text-lg font-bold text-zinc-900 mb-4">保存为模板</h3>
             <input
               autoFocus
-              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 mb-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 mb-4 focus:ring-2 focus:ring-primary focus:outline-none"
               value={saveTplName}
               onChange={e => setSaveTplName(e.target.value)}
               placeholder="输入模板名称"
             />
             <div className="flex gap-2">
               <Button variant="ghost" onClick={() => setShowSaveTplModal(false)} className="flex-1">取消</Button>
-              <Button onClick={handleConfirmSaveTemplate} className="flex-1 shadow-lg shadow-indigo-500/30">保存</Button>
+              <Button onClick={handleConfirmSaveTemplate} className="flex-1 shadow-lg shadow-primary/30">保存</Button>
             </div>
           </div>
         </div>

@@ -247,19 +247,19 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
       <div className="flex p-1 bg-zinc-100 rounded-xl mb-4">
         <button
           onClick={() => setActiveTab('EXERCISES')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'EXERCISES' ? 'bg-white text-indigo-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'EXERCISES' ? 'bg-white text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
         >
           动作库
         </button>
         <button
           onClick={() => setActiveTab('FAVORITES')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'FAVORITES' ? 'bg-white text-indigo-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'FAVORITES' ? 'bg-white text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
         >
           我的收藏
         </button>
         <button
           onClick={() => setActiveTab('TEMPLATES')}
-          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'TEMPLATES' ? 'bg-white text-indigo-500 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
+          className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${activeTab === 'TEMPLATES' ? 'bg-white text-primary shadow-sm' : 'text-zinc-500 hover:text-zinc-900'}`}
         >
           我的模板
         </button>
@@ -269,7 +269,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
         /* TEMPLATES VIEW */
         <>
           <div className="flex justify-end mb-4 gap-2">
-            <Button onClick={() => setShowAiModal(true)} size="sm" variant="secondary" icon={<Sparkles size={16} className="text-indigo-500" />}>
+            <Button onClick={() => setShowAiModal(true)} size="sm" variant="secondary" icon={<Sparkles size={16} className="text-primary" />}>
               AI 生成
             </Button>
             <Button onClick={openNewTemplateModal} size="sm" icon={<Plus size={16} />}>
@@ -282,11 +282,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
               <div
                 key={tpl.id}
                 onClick={() => openEditTemplateModal(tpl)}
-                className="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm relative cursor-pointer hover:border-indigo-500/50 transition-colors group"
+                className="bg-white p-4 rounded-xl border border-zinc-200 shadow-sm relative cursor-pointer hover:border-primary/50 transition-colors group"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex items-center gap-2">
-                    <Layers size={20} className="text-purple-500" />
+                    <Layers size={20} className="text-primary-light" />
                     <h3 className="font-bold text-zinc-900">{tpl.name}</h3>
                     <Edit2 size={12} className="text-zinc-300 opacity-0 group-hover:opacity-100" />
                   </div>
@@ -325,7 +325,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 placeholder={activeTab === 'FAVORITES' ? "搜索收藏的动作..." : "搜索动作..."}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white border border-zinc-200 rounded-xl py-2 pl-10 pr-4 text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                className="w-full bg-white border border-zinc-200 rounded-xl py-2 pl-10 pr-4 text-zinc-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary text-sm"
               />
             </div>
             {/* Only show Add button in generic Exercises tab */}
@@ -341,7 +341,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             <div className="flex overflow-x-auto space-x-2 pb-2 no-scrollbar">
               <button
                 onClick={() => setActiveCategory('ALL')}
-                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeCategory === 'ALL' ? 'bg-zinc-800 text-white border-zinc-800' : 'bg-white text-zinc-600 border-zinc-200'}`}
+                className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeCategory === 'ALL' ? 'bg-primary text-white border-primary' : 'bg-white text-zinc-600 border-zinc-200'}`}
               >
                 全部
               </button>
@@ -349,7 +349,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeCategory === cat ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white text-zinc-600 border-zinc-200'}`}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-colors border ${activeCategory === cat ? 'bg-primary text-white border-primary' : 'bg-white text-zinc-600 border-zinc-200'}`}
                 >
                   {cat}
                 </button>
@@ -366,7 +366,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             {filteredExercises.map(exercise => (
               <div key={exercise.id} className="bg-white p-3 rounded-xl flex justify-between items-center border border-zinc-200 shadow-sm hover:border-zinc-300 transition-colors group">
                 <div className="flex items-center space-x-3">
-                  <div className="bg-zinc-50 p-2 rounded-lg text-indigo-500/80">
+                  <div className="bg-zinc-50 p-2 rounded-lg text-primary/80">
                     {getCategoryIcon(exercise.category)}
                   </div>
                   <div>
@@ -380,7 +380,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                 <div className="flex space-x-1">
                   <button
                     onClick={() => openEditExerciseModal(exercise)}
-                    className="p-2 text-zinc-300 hover:text-indigo-500 transition-colors"
+                    className="p-2 text-zinc-300 hover:text-primary transition-colors"
                   >
                     <Edit2 size={18} />
                   </button>
@@ -525,11 +525,11 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             {/* Bottom: Picker Section */}
             <div className="h-1/3 flex flex-col bg-white">
               <div className="p-2 border-b border-zinc-100 flex gap-2 overflow-x-auto no-scrollbar">
-                <button onClick={() => setTplPickerTab('COMMON')} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === 'COMMON' ? 'bg-zinc-800 text-white' : 'bg-zinc-100 text-zinc-600'}`}>常用</button>
+                <button onClick={() => setTplPickerTab('COMMON')} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === 'COMMON' ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}`}>常用</button>
                 {Object.values(ExerciseCategory).filter(c => c !== ExerciseCategory.CUSTOM).map(c => (
-                  <button key={c} onClick={() => setTplPickerTab(c)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === c ? 'bg-indigo-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>{c}</button>
+                  <button key={c} onClick={() => setTplPickerTab(c)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === c ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}`}>{c}</button>
                 ))}
-                <button onClick={() => setTplPickerTab(ExerciseCategory.CUSTOM)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === ExerciseCategory.CUSTOM ? 'bg-indigo-500 text-white' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
+                <button onClick={() => setTplPickerTab(ExerciseCategory.CUSTOM)} className={`px-3 py-1 text-xs rounded-full whitespace-nowrap ${tplPickerTab === ExerciseCategory.CUSTOM ? 'bg-primary text-white' : 'bg-zinc-100 text-zinc-600'}`}>自定义</button>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
                 {pickerExercises.map(ex => (
@@ -539,7 +539,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
                     className="flex items-center justify-between p-2 hover:bg-zinc-50 rounded-lg cursor-pointer border border-transparent hover:border-zinc-100 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <Plus size={14} className="text-indigo-500" />
+                      <Plus size={14} className="text-primary" />
                       <span className="text-sm text-textMain">{ex.name}</span>
                     </div>
                     <span className="text-[10px] text-zinc-400">{ex.category}</span>
@@ -563,7 +563,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
           <div className="bg-white shadow-xl border border-zinc-200 w-full max-w-md rounded-2xl p-6 space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-xl font-bold text-zinc-900 flex items-center gap-2">
-                <Sparkles className="text-indigo-500" size={24} />
+                <Sparkles className="text-primary" size={24} />
                 AI 智能生成模板
               </h3>
               <button onClick={() => setShowAiModal(false)} className="text-zinc-400 hover:text-zinc-600"><X size={20} /></button>
@@ -576,7 +576,7 @@ export const LibraryView: React.FC<LibraryViewProps> = ({
             </p>
 
             <textarea
-              className="w-full h-32 bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+              className="w-full h-32 bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 focus:ring-2 focus:ring-primary focus:outline-none resize-none"
               placeholder="请输入训练内容..."
               value={aiPrompt}
               onChange={e => setAiPrompt(e.target.value)}

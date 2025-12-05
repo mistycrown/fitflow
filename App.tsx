@@ -45,6 +45,10 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : { provider: 'GEMINI', apiKey: '' };
   });
 
+  const [theme, setTheme] = useState<string>(() => {
+    return localStorage.getItem('fitflow_theme') || 'default';
+  });
+
   // Persistence Effects
   useEffect(() => {
     localStorage.setItem('fitflow_exercises_v4', JSON.stringify(exercises));
@@ -65,6 +69,12 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('fitflow_ai_settings', JSON.stringify(aiSettings));
   }, [aiSettings]);
+
+  useEffect(() => {
+    localStorage.setItem('fitflow_theme', theme);
+    // Apply theme to body
+    document.body.className = theme === 'default' ? '' : `theme-${theme}`;
+  }, [theme]);
 
   // Derived State (Use Local Date)
   const todayStr = getLocalDateKey(new Date());
@@ -178,6 +188,8 @@ const App: React.FC = () => {
         <SettingsView
           initialSettings={aiSettings}
           onSaveSettings={handleSaveSettings}
+          currentTheme={theme}
+          onThemeChange={setTheme}
         />
       )}
     </Layout>

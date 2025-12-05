@@ -35,9 +35,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, currentView, onChangeV
               <button
                 key={item.id}
                 onClick={() => onChangeView(item.id as ViewState)}
-                className={`flex flex-col items-center justify-center w-full h-full transition-all duration-300 active:scale-95 ${isActive ? 'text-indigo-500' : 'text-zinc-400 hover:text-zinc-900'}`}
+                className={`flex flex-col items-center justify-center w-full h-full transition-all duration-300 active:scale-95 ${isActive ? 'text-primary' : 'text-zinc-400 hover:text-zinc-900'}`}
               >
-                <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-indigo-500/10' : ''}`}>
+                <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-primary/10' : ''}`}>
                   <Icon size={24} strokeWidth={isActive ? 2.5 : 2} />
                 </div>
               </button>

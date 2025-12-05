@@ -6,13 +6,68 @@
 
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  
+  /* Default Theme (Indigo) */
+  --color-primary: 99 102 241;       /* #6366f1 */
+  --color-primary-dark: 79 70 229;   /* #4f46e5 */
+  --color-primary-light: 129 140 248;/* #818cf8 */
+  --color-secondary: 236 72 153;     /* #ec4899 */
+  --bg-gradient-start: 244 244 245;  /* #f4f4f5 zinc-100 */
+  --bg-gradient-end: 255 255 255;    /* #ffffff */
+}
+
+.theme-emerald {
+  --color-primary: 16 185 129;       /* #10b981 */
+  --color-primary-dark: 5 150 105;   /* #059669 */
+  --color-primary-light: 52 211 153; /* #34d399 */
+  --color-secondary: 245 158 11;     /* #f59e0b */
+  --bg-gradient-start: 236 253 245;  /* emerald-50 */
+  --bg-gradient-end: 255 255 255;
+}
+
+.theme-rose {
+  --color-primary: 244 63 94;        /* #f43f5e */
+  --color-primary-dark: 225 29 72;   /* #e11d48 */
+  --color-primary-light: 251 113 133;/* #fb7185 */
+  --color-secondary: 139 92 246;     /* #8b5cf6 */
+  --bg-gradient-start: 255 241 242;  /* rose-50 */
+  --bg-gradient-end: 255 255 255;
+}
+
+.theme-amber {
+  --color-primary: 245 158 11;       /* #f59e0b */
+  --color-primary-dark: 217 119 6;   /* #d97706 */
+  --color-primary-light: 251 191 36; /* #fbbf24 */
+  --color-secondary: 16 185 129;     /* #10b981 */
+  --bg-gradient-start: 255 251 235;  /* amber-50 */
+  --bg-gradient-end: 255 255 255;
+}
+
+.theme-sky {
+  --color-primary: 14 165 233;       /* #0ea5e9 */
+  --color-primary-dark: 2 132 199;   /* #0284c7 */
+  --color-primary-light: 56 189 248; /* #38bdf8 */
+  --color-secondary: 244 63 94;      /* #f43f5e */
+  --bg-gradient-start: 240 249 255;  /* sky-50 */
+  --bg-gradient-end: 255 255 255;
+}
+
+.theme-violet {
+  --color-primary: 139 92 246;       /* #8b5cf6 */
+  --color-primary-dark: 124 58 237;  /* #7c3aed */
+  --color-primary-light: 167 139 250;/* #a78bfa */
+  --color-secondary: 14 165 233;     /* #0ea5e9 */
+  --bg-gradient-start: 245 243 255;  /* violet-50 */
+  --bg-gradient-end: 255 255 255;
 }
 
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f4f5; /* zinc-100 */
+  background: linear-gradient(135deg, rgb(var(--bg-gradient-start)) 0%, rgb(var(--bg-gradient-end)) 100%);
+  min-height: 100vh;
+  color: #18181b;
 }
 
 /* Custom Animations */
