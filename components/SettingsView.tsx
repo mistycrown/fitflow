@@ -70,24 +70,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ onSaveSettings, init
                     <h3 className="text-lg font-bold text-zinc-900 flex items-center gap-2">
                         外观主题
                     </h3>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-6 gap-2 md:gap-3 py-2">
                         {THEMES.map((theme) => (
                             <button
                                 key={theme.id}
                                 onClick={() => onThemeChange(theme.id)}
-                                className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${currentTheme === theme.id
-                                    ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                                    : 'border-zinc-200 hover:bg-zinc-50'
+                                className={`w-full aspect-square rounded-full shadow-sm transition-all focus:outline-none ${currentTheme === theme.id
+                                    ? 'ring-4 ring-offset-2 ring-primary/30 scale-105'
+                                    : 'hover:scale-105 ring-1 ring-zinc-200'
                                     }`}
-                            >
-                                <div
-                                    className="w-8 h-8 rounded-full shadow-sm"
-                                    style={{ backgroundColor: theme.color }}
-                                />
-                                <span className={`text-sm font-medium ${currentTheme === theme.id ? 'text-primary' : 'text-zinc-700'}`}>
-                                    {theme.name}
-                                </span>
-                            </button>
+                                style={{ backgroundColor: theme.color }}
+                                title={theme.name}
+                                aria-label={theme.name}
+                            />
                         ))}
                     </div>
                 </div>
